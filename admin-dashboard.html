@@ -1,107 +1,14 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard | Film Hall</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-    h1, h2 { color: #222; }
-    .section { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-    ul { padding-left: 20px; }
-    img { max-width: 200px; margin-top: 10px; border-radius: 8px; }
-    .booking { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #fafafa; }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - Film Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="firebase-config.js"></script>
+  <script defer src="script.js"></script>
 </head>
 <body>
-  <h1>🎬 Admin Dashboard - Film Hall</h1>  <div class="section">
-    <h2>🎥 Uploaded Movies (By Theatre Owners)</h2>
-    <div id="movie-list">Loading movies...</div>
-  </div>  <div class="section">
-    <h2>🎟️ All Bookings (Seat & Payment Info)</h2>
-    <div id="booking-list">Loading bookings...</div>
-  </div>  <div class="section">
-    <h2>💰 Revenue Summary</h2>
-    <div id="revenue-summary">Calculating revenue...</div>
-  </div>  <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "film-hall-booking",
-      storageBucket: "film-hall-booking.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const movieListDiv = document.getElementById("movie-list");
-    db.collection("movies").get().then(snapshot => {
-      movieListDiv.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const showtimes = Array.isArray(data.showtimes) ? data.showtimes.join(", ") : data.showtimes;
-        movieListDiv.innerHTML += `
-          <div class="booking">
-            <p><strong>🎬 Title:</strong> ${data.title}</p>
-            <p><strong>🕒 Showtimes:</strong> ${showtimes}</p>
-            <p><strong>💵 Price:</strong> ₹${data.price}</p>
-            ${data.posterURL ? `<img src="${data.posterURL}" alt="Poster">` : ""}
-          </div>
-        `;
-      });
-    }).catch(error => {
-      console.error("Movie fetch error:", error);
-      movieListDiv.innerHTML = "Error loading movies.";
-    });
-
-    const bookingListDiv = document.getElementById("booking-list");
-    db.collection("bookings").orderBy("timestamp", "desc").get().then(snapshot => {
-      bookingListDiv.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const seats = data.seats ? data.seats.join(", ") : "";
-        bookingListDiv.innerHTML += `
-          <div class="booking">
-            <p><strong>🎬 Movie:</strong> ${data.movieTitle}</p>
-            <p><strong>🕒 Showtime:</strong> ${data.showtime}</p>
-            <p><strong>💺 Seats:</strong> ${seats}</p>
-            <p><strong>💳 Amount:</strong> ₹${data.price}</p>
-            <p><strong>📍 Theatre:</strong> ${data.theatreName || 'N/A'}</p>
-            <p><strong>🕰️ Time:</strong> ${new Date(data.timestamp?.seconds * 1000).toLocaleString()}</p>
-          </div>
-        `;
-      });
-    }).catch(error => {
-      console.error("Booking fetch error:", error);
-      bookingListDiv.innerHTML = "Error loading bookings.";
-    });
-
-    const revenueDiv = document.getElementById("revenue-summary");
-    db.collection("bookings").get().then(snapshot => {
-      let totalBookings = 0, totalRevenue = 0;
-      let seat50 = 0, seat100 = 0;
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const seats = data.seats || [];
-        const price = parseInt(data.price || 0);
-        totalBookings++;
-        seats.forEach(seat => {
-          if (seat.startsWith("A")) { seat50++; totalRevenue += 50; }
-          else if (seat.startsWith("B")) { seat100++; totalRevenue += 100; }
-        });
-      });
-
-      revenueDiv.innerHTML = `
-        <p><strong>Total Bookings:</strong> ${totalBookings}</p>
-        <p><strong>Total Revenue:</strong> ₹${totalRevenue}</p>
-        <p><strong>₹50 Seats:</strong> ${seat50} (₹${seat50 * 50})</p>
-        <p><strong>₹100 Seats:</strong> ${seat100} (₹${seat100 * 100})</p>
-      `;
-    }).catch(error => {
-      console.error("Revenue error:", error);
-      revenueDiv.innerHTML = "Error calculating revenue.";
-    });
-  </script></body>
+  <h1>🎬 Admin Dashboard</h1>
+  <div id="theatre-data"></div>
+</body>
 </html>
